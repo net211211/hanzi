@@ -1,0 +1,5 @@
+{
+  "name": "Tim汉字笔画学习器",
+  "description": "A modern, interactive Chinese character stroke order learning application powered by Hanzi Writer and Google Gemini API.",
+  "requestFramePermissions": []
+}
