@@ -41,11 +41,21 @@ export const fetchCharacterData = async (char: string): Promise<CharacterData> =
       },
     });
 
-    if (!response.text) {
+    const text = response.text;
+    if (!text) {
       throw new Error("No data returned from Gemini");
     }
 
-    const data = JSON.parse(response.text) as CharacterData;
+    // Robust JSON extraction: Find the first '{' and last '}' to ignore preamble/postamble text
+    const startIndex = text.indexOf('{');
+    const endIndex = text.lastIndexOf('}');
+
+    if (startIndex === -1 || endIndex === -1) {
+      throw new Error("Invalid JSON format returned from Gemini");
+    }
+
+    const jsonStr = text.substring(startIndex, endIndex + 1);
+    const data = JSON.parse(jsonStr) as CharacterData;
     return data;
   } catch (error) {
     console.error("Gemini API Error:", error);
