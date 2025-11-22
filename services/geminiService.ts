@@ -1,8 +1,6 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { CharacterData } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 const characterSchema: Schema = {
   type: Type.OBJECT,
   properties: {
@@ -30,6 +28,9 @@ const characterSchema: Schema = {
 };
 
 export const fetchCharacterData = async (char: string): Promise<CharacterData> => {
+  // Initialize the client inside the function to avoid top-level crashes on app load
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
