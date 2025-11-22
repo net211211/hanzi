@@ -28,8 +28,16 @@ const characterSchema: Schema = {
 };
 
 export const fetchCharacterData = async (char: string): Promise<CharacterData> => {
-  // Initialize the client inside the function to avoid top-level crashes on app load
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  // 获取 API Key，如果在浏览器环境中未定义，给出一个友好的错误提示
+  const apiKey = process.env.API_KEY;
+  
+  if (!apiKey) {
+    console.error("API Key is missing");
+    throw new Error("API_KEY 未配置。请在 Vercel 项目设置中添加环境变量 API_KEY。");
+  }
+
+  // 关键修复：在函数内部初始化客户端，防止应用在加载时因缺少 Key 而直接崩溃
+  const ai = new GoogleGenAI({ apiKey });
 
   try {
     const response = await ai.models.generateContent({
@@ -44,15 +52,16 @@ export const fetchCharacterData = async (char: string): Promise<CharacterData> =
 
     const text = response.text;
     if (!text) {
-      throw new Error("No data returned from Gemini");
+      throw new Error("Gemini 未返回数据");
     }
 
-    // Robust JSON extraction: Find the first '{' and last '}' to ignore preamble/postamble text
+    // 增强鲁棒性：寻找 JSON 对象的开始和结束位置
+    // 这可以防止模型返回 Markdown 代码块标记（如 ```json ... ```）导致解析失败
     const startIndex = text.indexOf('{');
     const endIndex = text.lastIndexOf('}');
 
     if (startIndex === -1 || endIndex === -1) {
-      throw new Error("Invalid JSON format returned from Gemini");
+      throw new Error("Gemini 返回的 JSON 格式无效");
     }
 
     const jsonStr = text.substring(startIndex, endIndex + 1);
